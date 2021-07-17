@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>MathJax with Tooltips</h1>
+<p>MathJax does not support tooltips by default. This is a sample that allows even overlapping tooltips.</p>
+
+<style>
+.mathjax-tooltip {
+  position: absolute;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 10px;
+  z-index: 1;
+  visibility: hidden;
+}
+
+.mathjax-tooltip mjx-container {
+  margin: 0.3em 0 !important;
+}
+
+.mathjax-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+  z-index: 1;
+}
+
+body {
+  text-align: center;
+}
+</style>
+
+<div style="visibility: collapse">
+$$
+\newcommand{\target}[2]{\class{mathjax-symbol mathjax-symbol-#1}{#2}}
+$$
+</div>
+
+<div class="mathjax-tooltip-posterior">Posterior</div>
+<div class="mathjax-tooltip-likelihood">Likelihood</div>
+<div class="mathjax-tooltip-prior">Prior</div>
+<div class="mathjax-tooltip-evidence">Evidence</div>
+
+<div class="mathjax-tooltip-p">$$P$$</div>
+<div class="mathjax-tooltip-a">$$A$$</div>
+<div class="mathjax-tooltip-b">$$B$$</div>
+
+Normal Math:
+
+$$P(A\mid B) = \frac{P(B\mid A)P(A)}{P(B)}$$
+
+Math with Tooltip: (Mouse hover to see tooltip)
+
+$$
+\target{posterior}{P(A\mid B)}=
+\frac{
+  \target{likelihood}{P(B\mid A)}\target{prior}{P(A)}
+}{
+  \target{evidence}{P(B)}
+}
+$$
+
+Math with Overlapped Tooltip: (Mouse hover to see tooltip)
+
+$$
+\target{posterior}{
+  \target{p}{P}(\target{a}{A}\mid \target{b}{B})
+}
+=
+\frac{
+  \target{likelihood}{\target{p}{P}(\target{b}{B}\mid \target{a}{A})}\target{prior}{\target{p}{P}(\target{a}{A})}
+}{
+  \target{evidence}{\target{p}{P}(\target{b}{B})}
+}
+$$
+
+<script id="MathJax-script" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.min.js">
+</script>
+<script>
+MathJax = {
+  loader: {load: ['[tex]/html']},
+  tex: {
+    packages: {'[+]': ['html']}
+  },
+  startup: {
+    pageReady: () => {
+      return MathJax.startup.defaultPageReady().then(() => {
+        // Collect elements into directory grouped by key
+        var sym_selected = [];
+        function selected(self, event=true) {
+          if (event) {
+            var sslen = sym_selected.length;
+            if (sslen > 0)
+              deselected(sym_selected[sslen-1], false)
+            sym_selected.push(self);
+          }
+          // Modify target group
+          for (var el of self.targets) {
+            el.old_stylecolor = el.style.color;
+            el.old_mathcolor = el.mathcolor;
+            el.style.color="blue";
+            el.removeAttribute("mathcolor");
+          }
+          // Modify tooltip
+          var targetLeft = self.getBoundingClientRect().left;
+          var targetWidth = self.getBoundingClientRect().width;
+          var toolWidth = self.tooltip.getBoundingClientRect().width;
+          var left = targetLeft + targetWidth / 2 - toolWidth / 2;
+          self.tooltip.style.left = left + "px";
+          var targetTop = self.getBoundingClientRect().top;
+          var toolHeight = self.tooltip.getBoundingClientRect().height;
+          var offset = 10;
+          var top = targetTop - toolHeight - offset;
+          self.tooltip.style.top = top + "px";
+          if (self.tooltip.innerHTML)
+            self.tooltip.style.visibility = "visible";
+        }
+        function deselected(self, event=true) {
+          if (event) {
+            sym_selected.pop();
+            var sslen = sym_selected.length;
+            if (sslen > 0) {
+              selected(sym_selected[sslen-1], false)
+            }
+          }
+          // Modify target group
+          for (var el of self.targets) {
+            el.style.color=el.old_stylecolor;
+            el.mathcolor=el.old_mathcolor;
+            el.removeAttribute("old_stylecolor");
+            el.removeAttribute("old_mathcolor");
+          }
+          // Modify tooltip
+          self.tooltip.style.visibility = "hidden";
+        }
+        var sym_dict = {};
+        var els = document.getElementsByClassName("mathjax-symbol");
+        for (var el of els) {
+          var name = "";
+          if (!el.tagName.startsWith("MJX-"))
+            continue;
+          for (var cls of el.classList) {
+            var match = cls.match(/^mathjax-symbol-(\w+)$/);
+            if (!match) continue;
+            if (match.length < 2)
+              throw `[MathJax Tooltip] Incomplete class type: ${cls}`;
+            if (name)
+              throw `[MathJax Tooltip] Multiple class type: ${el.classList}`;
+            name = match[1];
+          }
+          if (!name) continue;
+          if (!(name in sym_dict))
+            sym_dict[name] = [];
+          sym_dict[name].push(el);
+        }
+        console.log(sym_dict)
+        // For each key (group), setup
+        for (var key in sym_dict) {
+          var el_tooltips = document.getElementsByClassName("mathjax-tooltip-" + key);
+          if (!el_tooltips)
+            throw `[MathJax Tooltip] No tooltip with key: ${key}`;
+          var el_tooltip = null
+          for (var el of el_tooltips) {
+            if (el_tooltip)
+              throw `[MathJax Tooltip] Too many tooltip with key: ${key}`;
+            el_tooltip = el;
+          }
+          if (!el_tooltip)
+            throw `[MathJax Tooltip] No tooltip with key: ${key}`;
+          el_tooltip.classList.add("mathjax-tooltip")
+          var els = sym_dict[key];
+          for (var el of els) {
+            el.tooltip = el_tooltip;
+            el.targets = els;
+            el.addEventListener('mouseenter', e => {
+              selected(e.target);
+            })
+            el.addEventListener('mouseleave', e => {
+              deselected(e.target);
+            })
+          }
+        }
+      });
+    }
+  }
+};
+</script>
+</body>
+</html>
