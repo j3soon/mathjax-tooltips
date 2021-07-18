@@ -49,9 +49,10 @@ $$
 <div class="mathjax-tooltip-prior">Prior</div>
 <div class="mathjax-tooltip-evidence">Evidence</div>
 
-<div class="mathjax-tooltip-p">$$P$$</div>
+<div class="mathjax-tooltip-p" highlight-color="red">$$P$$</div>
 <div class="mathjax-tooltip-a">$$A$$</div>
 <div class="mathjax-tooltip-b">$$B$$</div>
+<div class="mathjax-tooltip-bar" highlight-color="darkgreen"></div>
 
 Normal Math:
 
@@ -72,11 +73,11 @@ Math with Overlapped Tooltip: (Mouse hover to see tooltip)
 
 $$
 \target{posterior}{
-  \target{p}{P}(\target{a}{A}\mid \target{b}{B})
+  \target{p}{P}(\target{a}{A}\target{bar}{\mid} \target{b}{B})
 }
 =
 \frac{
-  \target{likelihood}{\target{p}{P}(\target{b}{B}\mid \target{a}{A})}\target{prior}{\target{p}{P}(\target{a}{A})}
+  \target{likelihood}{\target{p}{P}(\target{b}{B}\target{bar}{\mid} \target{a}{A})}\target{prior}{\target{p}{P}(\target{a}{A})}
 }{
   \target{evidence}{\target{p}{P}(\target{b}{B})}
 }
@@ -107,7 +108,11 @@ MathJax = {
           for (var el of self.targets) {
             el.old_stylecolor = el.style.color;
             el.old_mathcolor = el.mathcolor;
-            el.style.color="blue";
+            var highlight_color = el.tooltip.getAttribute("highlight-color");
+            if (highlight_color)
+              el.style.color=highlight_color;
+            else
+              el.style.color="blue";
             el.removeAttribute("mathcolor");
           }
           // Modify tooltip
@@ -162,7 +167,7 @@ MathJax = {
             sym_dict[name] = [];
           sym_dict[name].push(el);
         }
-        console.log(sym_dict)
+        // console.log(sym_dict)
         // For each key (group), setup
         for (var key in sym_dict) {
           var el_tooltips = document.getElementsByClassName("mathjax-tooltip-" + key);

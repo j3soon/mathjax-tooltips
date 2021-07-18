@@ -16,4 +16,8 @@ We use MathJax 3.2.0. Similarly, MathJax 2.x can achieve similar effect.
 
 [![screenshot](screenshot-2.png)][link]
 
+<hr>
+
+[![screenshot](screenshot-3.png)][link]
+
 [link]: https://j3soon.github.io/mathjax-tooltips/
