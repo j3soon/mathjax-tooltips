@@ -8,6 +8,8 @@ We use MathJax 3.2.0. Similarly, MathJax 2.x can achieve similar effect.
 
 [Try out the Demo here!][link]
 
+[Example Application in Blog Post](https://abstractionrevealed.com/pythagorean-means/)
+
 ## Screenshots
 
 [![screenshot](screenshot-1.png)][link]
